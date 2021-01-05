@@ -39,9 +39,6 @@ console.log("Ready to Run");
 
 const router = new Router();
 router
-  .get("/", (context) => {
-    context.response.body = "Hello world!";
-  })
   .get("/book", (context) => {
     context.response.body = Array.from(books.values());
   })
@@ -49,12 +46,36 @@ router
     context.response.body = books.size;
   })
   .get("/book/:id", (context) => {
-    const id = context.params?.id;
+    const id = context.params.id;
+    if (!id) return;
     console.log(id);
-    if (id && books.has(id)) {
-      console.log("OK");
-      context.response.body = books.get(id);
+    let entry: YomichanDictEntry | null = null;
+    if (books.has(id)) {
+      console.log("OK Match");
+      entry = books.get(id)!;
+    } else {
+      const bookValues = Array.from(books.values());
+      const readingMatch = bookValues.find((e) => e.reading === id);
+      if (readingMatch) {
+        console.log("OK Reading Match");
+        entry = readingMatch;
+      }
     }
+    context.response.body = entry;
+  })
+  .post("/book/missing", async (context) => {
+    const json = context.request.body({ type: "json" });
+    const text = (await json.value) as string[];
+    const values = Array.from(books.values());
+    const missing = text.filter(
+      (t) =>
+        !books.has(t) &&
+        values.find((entry) => entry.reading == t) === undefined
+    );
+    context.response.body = {
+      found: text.filter((t) => !missing.includes(t)),
+      notfound: missing,
+    };
   });
 
 const app = new Application();
