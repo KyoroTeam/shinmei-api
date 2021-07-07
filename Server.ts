@@ -1,8 +1,6 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { expandGlobSync } from "https://deno.land/std@0.83.0/fs/mod.ts";
 
-console.log("a", Deno.cwd());
-
 interface YomichanDictEntry {
   expression: string;
   reading: string;
